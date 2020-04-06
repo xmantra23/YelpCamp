@@ -9,7 +9,6 @@ var passport = require("passport");
 var LocalStrategy = require("passport-local");
 var methodOverride = require("method-override");//for put and delete requests
 var flash = require("connect-flash");
-//var seedDB = require("./seed"); //seeding data with dummy data
 
 //requiring all the routes.
 var commentRoutes = require("./routes/comments");
