@@ -1,0 +1,24 @@
+.thumbnail img{
+	width: 100%;
+}
+
+.thumbnail.show{
+	padding: 0px;
+}
+
+.container{
+	margin-top:10px;
+}
+
+.thumbnail.show .caption-full{
+	padding:10px;
+}
+
+.comment-header{
+	font-size: 2em;
+	font-weight:bold;
+}
+
+.delete-post-form{
+	display:inline;
+}
