@@ -18,7 +18,7 @@ var authRoutes = require("./routes/auth");
 //----------CREATING AND CONNECTING TO THE DATABASE--------------------------
 mongoose.set('useUnifiedTopology', true); //getting a deprecation warning.
 mongoose.set('useFindAndModify', false); //getting a deprecation warning.
-mongoose.connect('mongodb://localhost/Yelp_Camp',{ useNewUrlParser: true });
+mongoose.connect(process.env.DATABASEURL,{ useNewUrlParser: true });
 //----------------------------------------------------------------------------
 
 app.set("view engine","ejs"); //no need to include .ejs after this
