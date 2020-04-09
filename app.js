@@ -9,6 +9,7 @@ var passport = require("passport");
 var LocalStrategy = require("passport-local");
 var methodOverride = require("method-override");//for put and delete requests
 var flash = require("connect-flash");
+var moment = require("moment");
 
 //requiring all the routes.
 var commentRoutes = require("./routes/comments");
@@ -24,7 +25,8 @@ mongoose.connect(process.env.DATABASEURL,{ useNewUrlParser: true, useCreateIndex
 app.set("view engine","ejs"); //no need to include .ejs after this
 app.use(bodyParser.urlencoded({extended:true})); //so that we can use req.body.name for post methods
 app.use(express.static(__dirname + "/public")); //serving public directory for css and javascript files
-app.use(flash());
+app.use(flash()); //required for flash messages.
+app.locals.moment = moment; //using moment.js 
 //---------------PASSPORT CONFIGURATION----------------------------------
 var expressSession = require("express-session");
 app.use(expressSession({
