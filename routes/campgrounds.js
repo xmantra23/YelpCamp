@@ -4,6 +4,16 @@ var Campground = require("../models/campground");
 var Comment = require("../models/comment");
 var middleware = require("../middleware");
 
+var NodeGeocoder = require('node-geocoder');
+
+var options = {
+	provider: 'google',
+	httpAdapter: 'https',
+	apiKey: process.env.GEOCODER_API_KEY,
+	formatter: null
+};
+
+var geocoder = NodeGeocoder(options);
 //INDEX
 router.get("/",function(req,res){
 	Campground.find({},function(err,campgrounds){
@@ -23,13 +33,27 @@ router.post("/",middleware.isLoggedIn,function(req,res){
 	var price = req.body.price;
 	var description = req.body.description;
 	var author = {id: req.user._id,username: req.user.username};
-	var newCampGround = {name:name,image:image,description:description,author:author,price:price};
-	Campground.create(newCampGround,function(err,newlyCreated){
-		if(err){
-			console.log(err);
-		}else{
-			res.redirect("campgrounds");
+	
+	geocoder.geocode(req.body.location,function(err,data){
+		if(err || !data.length){
+			req.flash('error','Invalid Campground Location');
+			console.log(err.message);
+			console.log(data[0]);
+			return res.redirect('back');
 		}
+		var lat = data[0].latitude;
+		var lng = data[0].longitude;
+		var location = data[0].formattedAddress;
+		
+		var newCampGround = {name:name,image:image,description:description,
+						 author:author,price:price,location:location,lat:lat,lng:lng};
+		Campground.create(newCampGround,function(err,newlyCreated){
+			if(err){
+				console.log(err);
+			}else{
+				res.redirect("campgrounds");
+			}
+		});
 	});	
 });
 
@@ -58,12 +82,24 @@ router.get("/:id/edit",middleware.checkOwnership,function(req,res){
 
 //UPDATE
 router.put("/:id",middleware.checkOwnership,function(req,res){
-	Campground.findByIdAndUpdate(req.params.id,req.body.campground,function(err,updatedCampground){
-		if(err){
-			res.redirect("/campground");
-		}else{
-			res.redirect("/campgrounds/" + req.params.id);
+	geocoder.geocode(req.body.location,function(err,data){
+		if(err || !data.length){
+			req.flash('error','Invalid Campground Location.');
+			return res.redirect('back');
 		}
+		req.body.campground.lat = data[0].latitude;
+		req.body.campground.lng = data[0].longitude;
+		req.body.campground.location = data[0].formattedAddress;
+		
+		Campground.findByIdAndUpdate(req.params.id,req.body.campground,function(err,updatedCampground){
+			if(err){
+				req.flash("error",err.message);
+				res.redirect("/campground");
+			}else{
+				req.flash("success","Successfully Updated!");
+				res.redirect("/campgrounds/" + req.params.id);
+			}
+		});
 	});
 });
 

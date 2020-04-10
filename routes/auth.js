@@ -16,6 +16,37 @@ router.get("/register",function(req,res){
 		res.render("register");
 });
 
+//SHOW ADMIN-REGISTER FORM
+router.get("/admin-register",function(req,res){
+	if(req.user) //if already logged donot show register form. redirect to campgrounds page
+		res.redirect("/campgrounds");
+	else
+		res.render("admin-register");
+});
+
+
+// REGISTER NEW ADMIN USER
+router.post("/admin-register",function(req,res){
+	var newUser = new User({username: req.body.username});
+	if(req.body.adminCode === process.env.ADMIN_CODE){
+		newUser.isAdmin = true;
+	}else{
+		req.flash("error","Invalid Admin Code")
+		return res.redirect("/admin-register");
+	}
+	User.register(newUser,req.body.password,function(err,user){
+		if(err){
+			console.log(err);
+			req.flash("error",err.message);
+			return res.redirect("/register");
+		}
+		passport.authenticate("local")(req,res,function(){
+			req.flash("success","welcome " + req.body.username);
+			res.redirect("/campgrounds");
+		});
+	});
+});
+
 // REGISTER NEW USER
 router.post("/register",function(req,res){
 	var newUser = new User({username: req.body.username});

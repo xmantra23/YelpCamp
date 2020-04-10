@@ -18,7 +18,10 @@ var campGroundSchema = new mongoose.Schema({
 		},
 		username: String
 	},
-	createdAt: {type:Date, default: Date.now}
+	createdAt: {type:Date, default: Date.now},
+	location: String,
+	lat: Number,
+	lng: Number
 });
 
 module.exports = mongoose.model("Campground",campGroundSchema);
