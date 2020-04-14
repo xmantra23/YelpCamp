@@ -16,6 +16,7 @@ var moment = require("moment");
 var commentRoutes = require("./routes/comments");
 var campgroundRoutes = require("./routes/campgrounds");
 var authRoutes = require("./routes/auth");
+var userRoutes = require("./routes/users");
 
 //----------CREATING AND CONNECTING TO THE DATABASE--------------------------
 mongoose.set('useUnifiedTopology', true); //getting a deprecation warning.
@@ -55,6 +56,7 @@ app.use(methodOverride("_method"));  //need this for put and delete requests.
 app.use(authRoutes);
 app.use("/campgrounds",campgroundRoutes);
 app.use("/campgrounds/:id/comments",commentRoutes);
+app.use(userRoutes);
 
 
 app.listen(process.env.PORT,process.env.IP,function(){

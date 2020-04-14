@@ -27,3 +27,12 @@
 	height:400px;
 	width:100%;
 }
+
+.container h1{
+	text-align: center;
+}
+
+.row .container-fluid{
+	width:30%;
+	margin: 30px auto;
+}
