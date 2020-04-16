@@ -32,6 +32,9 @@
 	text-align: center;
 }
 
+#jumbotron-h1{
+	text-align:left;
+}
 .row .container-fluid{
 	width:40%;
 	margin: 30px auto;

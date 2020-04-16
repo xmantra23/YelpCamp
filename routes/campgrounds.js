@@ -16,13 +16,27 @@ var options = {
 var geocoder = NodeGeocoder(options);
 //INDEX
 router.get("/",function(req,res){
-	Campground.find({},function(err,campgrounds){
-		if(err){
-			console.log(err);
-		}else{
-			res.render("campgrounds/index",{campgrounds:campgrounds});
-		}
-	});
+	var noMatch = false;
+	if(req.query.search){
+		const regex = new RegExp(escapeRegex(req.query.search),'gi');
+		Campground.find({name:regex},function(err,campgrounds){
+			if(err){
+				console.log(err);
+			}else{
+				if(campgrounds.length === 0)
+					noMatch = true;
+				res.render("campgrounds/index",{campgrounds:campgrounds,noMatch:noMatch});
+			}
+		});
+	}else{
+		Campground.find({},function(err,campgrounds){
+			if(err){
+				console.log(err);
+			}else{
+				res.render("campgrounds/index",{campgrounds:campgrounds,noMatch:noMatch});
+			}
+		});
+	}
 	
 });
 
@@ -120,5 +134,9 @@ router.delete("/:id",middleware.checkOwnership,function(req,res){
 		}
 	});
 });
+
+function escapeRegex(text){
+	return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g,"\\$&");
+};
 
 module.exports = router;
