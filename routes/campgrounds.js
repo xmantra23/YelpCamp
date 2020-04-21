@@ -4,16 +4,40 @@ var Campground = require("../models/campground");
 var Comment = require("../models/comment");
 var middleware = require("../middleware");
 
+//-------------------Google Geocoder Api Variable Setup------------------------------------------------------
 var NodeGeocoder = require('node-geocoder');
-
 var options = {
 	provider: 'google',
 	httpAdapter: 'https',
 	apiKey: process.env.GEOCODER_API_KEY,
 	formatter: null
 };
-
 var geocoder = NodeGeocoder(options);
+//-------------------------------------------------------------------------------------------------------------------
+
+//-------------------Cloudinary variable setup-----------------------------------------------------------------------
+var multer = require('multer');
+var storage = multer.diskStorage({
+	filename: function(req,file,callback){
+		callback(null,Date.now() + file.originalname);
+	}
+});
+var imageFilter = function(req,file,callback){
+	//accept image files only
+	if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)){
+		return callback(new Error("Only image files are allowed"),false);
+	}
+	callback(null,true);
+}
+var upload = multer({storage:storage,fileFilter:imageFilter});
+var cloudinary = require('cloudinary');
+cloudinary.config({
+	cloud_name: 'xmantra23',
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET
+});
+//-------------------------------------------------------------------------------------------------------------------
+
 //INDEX
 router.get("/",function(req,res){
 	var noMatch = false;
@@ -37,37 +61,42 @@ router.get("/",function(req,res){
 			}
 		});
 	}
-	
 });
 
 //CREATE
-router.post("/",middleware.isLoggedIn,function(req,res){
+router.post("/",middleware.isLoggedIn,upload.single('image'),function(req,res){
 	var name = req.body.name;
-	var image = req.body.image;
 	var price = req.body.price;
 	var description = req.body.description;
 	var author = {id: req.user._id,username: req.user.username};
 	
-	geocoder.geocode(req.body.location,function(err,data){
+	geocoder.geocode(req.body.location, function(err,data){
 		if(err || !data.length){
 			req.flash('error','Invalid Campground Location');
-			console.log(err.message);
-			console.log(data[0]);
 			return res.redirect('back');
 		}
 		var lat = data[0].latitude;
 		var lng = data[0].longitude;
-		var location = data[0].formattedAddress;
+		var location = data[0].formattedAddress;	
 		
-		var newCampGround = {name:name,image:image,description:description,
-						 author:author,price:price,location:location,lat:lat,lng:lng};
-		Campground.create(newCampGround,function(err,newlyCreated){
+		cloudinary.v2.uploader.upload(req.file.path,function(err,result){
 			if(err){
-				console.log(err);
-			}else{
-				res.redirect("campgrounds");
+				req.flash("error",err.message);
+				return res.redirect('back');
 			}
-		});
+			var image = result.secure_url;
+			var imageId = result.public_id;
+			
+			var newCampGround = {name:name,image:image,imageId:imageId,description:description,
+					 author:author,price:price,location:location,lat:lat,lng:lng};
+			Campground.create(newCampGround,function(err,newlyCreated){
+				if(err){
+					console.log(err);
+				}else{
+					res.redirect("campgrounds");
+				}
+			});	
+		});	
 	});	
 });
 
@@ -95,42 +124,68 @@ router.get("/:id/edit",middleware.checkOwnership,function(req,res){
 });
 
 //UPDATE
-router.put("/:id",middleware.checkOwnership,function(req,res){
-	geocoder.geocode(req.body.location,function(err,data){
-		if(err || !data.length){
-			req.flash('error','Invalid Campground Location.');
-			return res.redirect('back');
-		}
-		req.body.campground.lat = data[0].latitude;
-		req.body.campground.lng = data[0].longitude;
-		req.body.campground.location = data[0].formattedAddress;
-		
-		Campground.findByIdAndUpdate(req.params.id,req.body.campground,function(err,updatedCampground){
+router.put("/:id",middleware.checkOwnership,upload.single('image'),function(req,res){
+		Campground.findById(req.params.id,async function(err,campground){
 			if(err){
 				req.flash("error",err.message);
 				res.redirect("/campground");
 			}else{
-				req.flash("success","Successfully Updated!");
-				res.redirect("/campgrounds/" + req.params.id);
+				if(req.file){
+					try{
+						await cloudinary.v2.uploader.destroy(campground.imageId);
+						var result = await cloudinary.v2.uploader.upload(req.file.path);
+						campground.imageId = result.public_id;
+						campground.image = result.secure_url;
+					}catch(err){
+						req.flash("error",err.message);
+						return res.redirect("back");
+					}
+				}
 			}
+			geocoder.geocode(req.body.location,function(err,data){
+				if(err || !data.length){
+					req.flash('error','Invalid Campground Location.');
+					return res.redirect('back');
+				}
+				campground.lat = data[0].latitude;
+				campground.lng = data[0].longitude;
+				campground.location = data[0].formattedAddress;	
+			});
+			
+			campground.name = req.body.name;
+			campground.description = req.body.description;
+			campground.price = req.body.price;
+			campground.save();
+			req.flash("success","Successfully Updated!");
+			res.redirect("/campgrounds/" + req.params.id);
 		});
 	});
-});
 
 //DELETE
 router.delete("/:id",middleware.checkOwnership,function(req,res){
-	Campground.findByIdAndRemove(req.params.id,function(err,campgroundRemoved){
+	Campground.findById(req.params.id,async function(err,campground){
 		if(err){
 			console.log(err);
-		}else{
-			Comment.deleteMany({_id:{$in: campgroundRemoved.comments}},function(err){
+			req.flash("error",err.message);
+			return res.redirect("back");
+		}
+		try{
+			await cloudinary.v2.uploader.destroy(campground.imageId);
+			Comment.deleteMany({_id:{$in: campground.comments}},function(err){
 				if(err){
 					console.log(err);
 				}
 				else{
-					res.redirect("/campgrounds");		
+					campground.remove();
+					req.flash("success","Campground was successfully deleted");
+					res.redirect('/campgrounds');	
 				}
 			});
+		}catch(err){
+			if(err){
+				req.flash("error",err.message);
+				return res.redirect("back");
+			}
 		}
 	});
 });
