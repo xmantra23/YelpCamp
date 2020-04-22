@@ -107,7 +107,7 @@ router.get("/new",middleware.isLoggedIn,function(req,res){
 
 //SHOW
 router.get("/:id",function(req,res){
-	Campground.findById(req.params.id).populate("comments").exec(function(err,foundCampGround){
+	Campground.findById(req.params.id).populate("comments likes").exec(function(err,foundCampGround){
 		if(err){
 			console.log(err);
 		}else{
@@ -187,6 +187,38 @@ router.delete("/:id",middleware.checkOwnership,function(req,res){
 				return res.redirect("back");
 			}
 		}
+	});
+});
+
+//Campground Like Route
+router.post("/:id/like",middleware.isLoggedIn,function(req,res){
+	Campground.findById(req.params.id,function(err,foundCampground){
+		if(err){
+			req.flash("error",err.message);
+			return res.redirect("/campgrounds");
+		}
+		
+		//check if req.user._id exists in foundCampGround.likes[] array
+		var foundUserLike = foundCampground.likes.some(function(like){
+			return like.equals(req.user._id);
+		});
+		
+		if(foundUserLike){
+			//user already liked, removing liked
+			foundCampground.likes.pull(req.user._id);
+		}else{
+			//adding the new user like
+			foundCampground.likes.push(req.user);
+		}
+		
+		foundCampground.save(function(err){
+			if(err){
+				req.flash("error",err.message);
+				return res.redirect("/campgrounds");
+			}
+			return res.redirect("/campgrounds/"+foundCampground._id); //redirecting to the show page
+		});
+		
 	});
 });
 
