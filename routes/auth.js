@@ -27,7 +27,13 @@ router.get("/admin-register",function(req,res){
 
 // REGISTER NEW ADMIN USER
 router.post("/admin-register",function(req,res){
-	var newUser = new User({username: req.body.username});
+	var newUser = new User({
+		username: req.body.username,
+		firstName: req.body.firstName,
+		lastName: req.body.lastName,
+		email: req.body.email,
+		avatar: req.body.avatar
+	});
 	if(req.body.adminCode === process.env.ADMIN_CODE){
 		newUser.isAdmin = true;
 	}else{

@@ -3,6 +3,7 @@ var router = express.Router();
 var Campground = require("../models/campground");
 var Comment = require("../models/comment");
 var middleware = require("../middleware");
+var Review = require("../models/review");
 
 //-------------------Google Geocoder Api Variable Setup------------------------------------------------------
 var NodeGeocoder = require('node-geocoder');
@@ -107,7 +108,9 @@ router.get("/new",middleware.isLoggedIn,function(req,res){
 
 //SHOW
 router.get("/:id",function(req,res){
-	Campground.findById(req.params.id).populate("comments likes").exec(function(err,foundCampGround){
+	Campground.findById(req.params.id).populate("comments likes").populate({
+		path:"reviews",options:{sort:{createdAt: -1}}//reverse sort reviews
+	}).exec(function(err,foundCampGround){
 		if(err){
 			console.log(err);
 		}else{
@@ -171,15 +174,21 @@ router.delete("/:id",middleware.checkOwnership,function(req,res){
 		}
 		try{
 			await cloudinary.v2.uploader.destroy(campground.imageId);
-			Comment.deleteMany({_id:{$in: campground.comments}},function(err){
+			Comment.deleteMany({_id:{$in:campground.comments}},function(err){
 				if(err){
 					console.log(err);
+					return res.redirect("/campgrounds");
 				}
-				else{
+				Review.deleteMany({_id:{$in:campground.reviews}},function(err){
+					if(err){
+						console.log(err);
+						return res.redirect("/campgrounds");
+					}
+					//remove campground
 					campground.remove();
 					req.flash("success","Campground was successfully deleted");
-					res.redirect('/campgrounds');	
-				}
+					res.redirect('/campgrounds');
+				});
 			});
 		}catch(err){
 			if(err){

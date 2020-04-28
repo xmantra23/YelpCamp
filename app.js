@@ -18,6 +18,7 @@ var campgroundRoutes = require("./routes/campgrounds");
 var authRoutes = require("./routes/auth");
 var userRoutes = require("./routes/users");
 var passResetRoutes = require("./routes/reset");
+var reviewRoutes = require("./routes/reviews");
 
 //----------CREATING AND CONNECTING TO THE DATABASE--------------------------
 mongoose.set('useUnifiedTopology', true); //getting a deprecation warning.
@@ -57,6 +58,7 @@ app.use(methodOverride("_method"));  //need this for put and delete requests.
 app.use(authRoutes);
 app.use("/campgrounds",campgroundRoutes);
 app.use("/campgrounds/:id/comments",commentRoutes);
+app.use("/campgrounds/:id/reviews",reviewRoutes);
 app.use(userRoutes);
 app.use(passResetRoutes);
 

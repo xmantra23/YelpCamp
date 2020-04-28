@@ -26,19 +26,29 @@
 	<div class = "row" style = "display:flex;flex-wrap:wrap;">
 		<% campgrounds.forEach(function(campground){ %>
 			<div class = "col-md-3 col-sm-4">
-				<div class = "text-center thumbnail">
-					<img src = "<%= campground.image %>" style = "width: 300px;height: 150px;object-fit: cover;">
+				<div class = "text-center thumbnail" style = "padding:0px 0px 10px 0px">
+					<img  src = "<%= campground.image %>" alt = "Image" 
+						 style = "width: 300px;height: 150px;object-fit: cover;">
 					<div class = "caption">
-						<h4><%= campground.name%></h4>
-						<div>
+						<h4><%= campground.name %></h4>
+						<% if (campground.rating === 0) {%>
+							<em>No reviews yet.</em>
+						<%}else{%>
+							<span class = "fa fa-star checked"></span>
+							<span class = "fa fa-star <% if(campground.rating > 1.5){%> checked <%}%>"></span>
+							<span class = "fa fa-star <% if(campground.rating > 2.5){%> checked <%}%>"></span>
+							<span class = "fa fa-star <% if(campground.rating > 3.5){%> checked <%}%>"></span>
+							<span class = "fa fa-star <% if(campground.rating > 4.5){%> checked <%}%>"></span>
+						<%}%>
+						<!-- <div>
 							<span class = "badge label-primary">
 								<i class = "fas fa-thumbs-up"></i>
-								<%= campground.likes.length %>
+								% //campground.likes.length %>
 							</span>
-						</div>
+						</div> -->
 					</div>
 					<div>
-						<a class = "btn btn-lg btn-primary" href = "/campgrounds/<%=campground._id%>">View Info</a>
+						<a class = "btn btn-primary" href = "/campgrounds/<%=campground._id%>">More Info</a>
 					</div>
 				</div>
 			</div>

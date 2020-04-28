@@ -23,6 +23,10 @@
 	display:inline;
 }
 
+#delete-review-form{
+	display:inline;
+}
+
 #map{
 	height:400px;
 	width:100%;
@@ -38,4 +42,7 @@
 .row .container-fluid{
 	width:40%;
 	margin: 30px auto;
+}
+.checked{
+	color: orange;
 }
