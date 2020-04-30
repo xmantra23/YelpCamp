@@ -48,6 +48,18 @@ app.use(function(req,res,next){   //providing current user to each route if logg
 	res.locals.currentUser = req.user;
 	res.locals.error = req.flash("error");
 	res.locals.success = req.flash("success");
+	res.locals.resizeImage = function(image){
+		var token = image.split("/");
+		var imageUrl = token[0] + "//" + token[2] + "/" + token[3] + "/" + token[4] + 
+				"/" + token[5] +  "/" + "w_300,h_150" +  "/" + token[6] +  "/" + token[7] ;
+		return imageUrl;
+	}
+	res.locals.resizeImage2 = function(image){
+		var token = image.split("/");
+		var imageUrl = token[0] + "//" + token[2] + "/" + token[3] + "/" + token[4] + 
+				"/" + token[5] +  "/" + "w_300,h_200" +  "/" + token[6] +  "/" + token[7] ;
+		return imageUrl;
+	}
 	next();
 });
 

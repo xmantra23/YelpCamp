@@ -17,10 +17,19 @@
 					<% campgrounds.forEach(function(campground){ %>
 						<div class = "col-md-6">
 							<div class = "text-center thumbnail">
-								<img src = "<%= campground.image %>" alt = "profile-image"
+								<img src = "<%= resizeImage2(campground.image) %>" alt = "profile-image"
 									 style = "width: 100%;height: 190px;object-fit: cover;">
 								<div class = "caption">
 									<h4><%= campground.name %></h4>
+									<% if (campground.rating === 0) {%>
+										<em>No reviews yet.</em>
+									<%}else{%>
+										<span class = "fa fa-star checked"></span>
+										<span class = "fa fa-star <% if(campground.rating > 1.5){%> checked <%}%>"></span>
+										<span class = "fa fa-star <% if(campground.rating > 2.5){%> checked <%}%>"></span>
+										<span class = "fa fa-star <% if(campground.rating > 3.5){%> checked <%}%>"></span>
+										<span class = "fa fa-star <% if(campground.rating > 4.5){%> checked <%}%>"></span>
+									<%}%>
 								</div>
 								<div>
 									<a class = "btn btn-lg btn-primary" 
