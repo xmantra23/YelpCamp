@@ -5,27 +5,27 @@ var passport = require("passport");
 
 
 //------------------Image upload setup--------------------------
-var multer = require('multer');
-var storage = multer.diskStorage({
-	filename: function(req,file,callback){
-				callback(null,Date.now()+ file.originalname);
+	var multer = require('multer');
+	var storage = multer.diskStorage({
+		filename: function(req,file,callback){
+					callback(null,Date.now()+ file.originalname);
+		}
+	});
+	var imageFilter = function(req,file,callback){
+		//accept image files only
+		if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)){
+			return callback(new Error("Only image files are allowed"),false);
+		}
+		callback(null,true);
 	}
-});
-var imageFilter = function(req,file,callback){
-	//accept image files only
-	if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)){
-		return callback(new Error("Only image files are allowed"),false);
-	}
-	callback(null,true);
-}
-var upload = multer({storage:storage,fileFilter:imageFilter});
-var cloudinary = require('cloudinary');
-cloudinary.config({
-	cloud_name: 'xmantra23',
-	api_key: process.env.CLOUDINARY_API_KEY,
-	api_secret: process.env.CLOUDINARY_API_SECRET
-});
-//------------------Image upload setup--------------------------
+	var upload = multer({storage:storage,fileFilter:imageFilter});
+	var cloudinary = require('cloudinary');
+	cloudinary.config({
+		cloud_name: 'xmantra23',
+		api_key: process.env.CLOUDINARY_API_KEY,
+		api_secret: process.env.CLOUDINARY_API_SECRET
+	});
+//^------------------Image upload setup--------------------------^
 
 //HOME PAGE
 router.get("/",function(req,res){
@@ -50,57 +50,70 @@ router.get("/admin-register",function(req,res){
 
 
 // REGISTER NEW ADMIN USER
-router.post("/admin-register",function(req,res){
-	var newUser = new User({
-		username: req.body.username,
-		firstName: req.body.firstName,
-		lastName: req.body.lastName,
-		email: req.body.email,
-		avatar: req.body.avatar
-	});
-	if(req.body.adminCode === process.env.ADMIN_CODE){
-		newUser.isAdmin = true;
-	}else{
-		req.flash("error","Invalid Admin Code")
-		return res.redirect("/admin-register");
-	}
-	User.register(newUser,req.body.password,function(err,user){
+router.post("/admin-register",upload.single('avatar'),function(req,res){
+	cloudinary.v2.uploader.upload(req.file.path,{folder:"YelpCamp-Users"},function(err,result){
 		if(err){
-			console.log(err);
 			req.flash("error",err.message);
-			return res.redirect("/register");
+			return res.redirect("back");
 		}
-		passport.authenticate("local")(req,res,function(){
-			req.flash("success","welcome " + req.body.username);
-			res.redirect("/campgrounds");
+		var newUser = new User({
+			username: req.body.username,
+			firstName: req.body.firstName,
+			lastName: req.body.lastName,
+			email: req.body.email,
+			avatar: result.secure_url,
+			avatarId: result.public_id
 		});
-	});
+		
+		if(req.body.adminCode === process.env.ADMIN_CODE){
+			newUser.isAdmin = true;
+		}else{
+			cloudinary.v2.uploader.destroy(result.public_id); //if not and admin delete uploaded image as cannot continue with registration
+			req.flash("error","Invalid Admin Code")
+			return res.redirect("/admin-register");
+		}
+		User.register(newUser,req.body.password,function(err,user){
+			if(err){
+				cloudinary.v2.uploader.destroy(result.public_id); //delete uploaded image as registration has failed.
+				console.log(err);
+				req.flash("error",err.message);
+				return res.redirect("/register");
+			}
+			passport.authenticate("local")(req,res,function(){
+				req.flash("success","welcome " + req.body.username);
+				res.redirect("/campgrounds");
+			});
+		});
+	});	
 });
 
 // REGISTER NEW USER
 router.post("/register",upload.single('avatar'),function(req,res){
-	cloudinary.v2.uploader.upload(req.file.path,function(err,result){
-		
-		
-		
-	});
-	var newUser = new User({
-		username: req.body.username,
-		firstName: req.body.firstName,
-		lastName: req.body.lastName,
-		email: req.body.email,
-		avatar: req.body.avatar
-	});
-	User.register(newUser,req.body.password,function(err,user){
+	cloudinary.v2.uploader.upload(req.file.path,{folder:"YelpCamp-Users"},function(err,result){
 		if(err){
-			console.log(err);
 			req.flash("error",err.message);
-			return res.redirect("/register");
+			return res.redirect("back");
 		}
-		passport.authenticate("local")(req,res,function(){
-			req.flash("success","welcome " + req.body.username);
-			res.redirect("/campgrounds");
+		var newUser = new User({
+			username: req.body.username,
+			firstName: req.body.firstName,
+			lastName: req.body.lastName,
+			email: req.body.email,
+			avatar: result.secure_url,
+			avatarId : result.public_id
 		});
+		User.register(newUser,req.body.password,function(err,user){
+			if(err){
+				console.log(err);
+				cloudinary.v2.uploader.destroy(result.public_id);//if registration fails delete image.
+				req.flash("error",err.message);
+				return res.redirect("/register");
+			}
+			passport.authenticate("local")(req,res,function(){
+				req.flash("success","welcome " + req.body.username);
+				res.redirect("/campgrounds");
+			});
+		});	
 	});
 });
 

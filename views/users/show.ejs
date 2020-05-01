@@ -2,8 +2,8 @@
 	<div class = 'container'>
 		<div class = 'row'>
 			<div class = 'col-md-4'>
-				<div class = "thumbnail">
-					<img src = "<%= user.avatar %>" alt = "User Profile Image">
+				<div>
+					<img class = "img-circle" src = "<%= user.avatar %>" alt = "User Profile Image">
 				</div>
 				<div class = "caption">
 					<h2><%= user.username %></h2>
@@ -13,6 +13,11 @@
 			</div>
 			<div class = 'col-md-8'>
 				<h3><%= user.firstName %>'s campgrounds: </h3>
+				<% if(campgrounds.length === 0){%> 
+					<div>
+						<h1 style = "text-align:left">No Campgrounds Posted.</h1>
+					</div>
+				<%}%>
 				<div class = "row" style = "display:flex;flex-wrap:wrap;">
 					<% campgrounds.forEach(function(campground){ %>
 						<div class = "col-md-6">

@@ -157,7 +157,7 @@ router.put("/:id",middleware.checkOwnership,upload.single('image'),function(req,
 				if(req.file){
 					try{
 						await cloudinary.v2.uploader.destroy(campground.imageId);
-						var result = await cloudinary.v2.uploader.upload(req.file.path);
+						var result = await cloudinary.v2.uploader.upload(req.file.path,{folder:"YelpCamp"});
 						campground.imageId = result.public_id;
 						campground.image = result.secure_url;
 					}catch(err){
