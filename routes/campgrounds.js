@@ -21,7 +21,7 @@ var multer = require('multer');
 var storage = multer.diskStorage({
 	filename: function(req,file,callback){
 		callback(null,Date.now() + file.originalname);
-	}
+	},
 });
 var imageFilter = function(req,file,callback){
 	//accept image files only
@@ -101,7 +101,7 @@ router.post("/",middleware.isLoggedIn,upload.single('image'),function(req,res){
 		var lng = data[0].longitude;
 		var location = data[0].formattedAddress;	
 		
-		cloudinary.v2.uploader.upload(req.file.path,function(err,result){
+		cloudinary.v2.uploader.upload(req.file.path,{folder:"YelpCamp"},function(err,result){
 			if(err){
 				req.flash("error",err.message);
 				return res.redirect('back');

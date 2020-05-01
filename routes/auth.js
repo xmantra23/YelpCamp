@@ -3,6 +3,30 @@ var router = express.Router();
 var User = require("../models/user");
 var passport = require("passport");
 
+
+//------------------Image upload setup--------------------------
+var multer = require('multer');
+var storage = multer.diskStorage({
+	filename: function(req,file,callback){
+				callback(null,Date.now()+ file.originalname);
+	}
+});
+var imageFilter = function(req,file,callback){
+	//accept image files only
+	if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)){
+		return callback(new Error("Only image files are allowed"),false);
+	}
+	callback(null,true);
+}
+var upload = multer({storage:storage,fileFilter:imageFilter});
+var cloudinary = require('cloudinary');
+cloudinary.config({
+	cloud_name: 'xmantra23',
+	api_key: process.env.CLOUDINARY_API_KEY,
+	api_secret: process.env.CLOUDINARY_API_SECRET
+});
+//------------------Image upload setup--------------------------
+
 //HOME PAGE
 router.get("/",function(req,res){
 	res.render("campgrounds/home");
@@ -54,7 +78,12 @@ router.post("/admin-register",function(req,res){
 });
 
 // REGISTER NEW USER
-router.post("/register",function(req,res){
+router.post("/register",upload.single('avatar'),function(req,res){
+	cloudinary.v2.uploader.upload(req.file.path,function(err,result){
+		
+		
+		
+	});
 	var newUser = new User({
 		username: req.body.username,
 		firstName: req.body.firstName,
