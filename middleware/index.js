@@ -97,4 +97,17 @@ middleware.checkReviewExistence = function(req,res,next){
 	}
 };
 
+middleware.checkIfAdmin = function(req,res,next){
+	if(req.isAuthenticated()){
+		if(!req.user.isAdmin){
+			req.flash("error","You donot have the permission to do that");
+			res.redirect("back");
+		}
+		next();
+	}else{
+		req.flash("error","You need to login first");
+		res.redirect("/campgrounds");
+	}
+}
+
 module.exports = middleware;

@@ -26,7 +26,8 @@ var storage = multer.diskStorage({
 var imageFilter = function(req,file,callback){
 	//accept image files only
 	if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)){
-		return callback(new Error("Only image files are allowed"),false);
+		req.fileValidationError = "Only image files are allowed";
+			return callback(null,false,req.fileValidationError);
 	}
 	callback(null,true);
 }
@@ -87,6 +88,10 @@ router.get("/",function(req,res){
 
 //CREATE
 router.post("/",middleware.isLoggedIn,upload.single('image'),function(req,res){
+	if(req.fileValidationError){
+		req.flash("error","Invalid image file");
+		return res.redirect("/campgrounds/new");
+	}
 	var name = req.body.name;
 	var price = req.body.price;
 	var description = req.body.description;
@@ -113,7 +118,8 @@ router.post("/",middleware.isLoggedIn,upload.single('image'),function(req,res){
 					 author:author,price:price,location:location,lat:lat,lng:lng};
 			Campground.create(newCampGround,function(err,newlyCreated){
 				if(err){
-					console.log(err);
+					req.flash("error",err.message);
+					return res.redirect('back');
 				}else{
 					res.redirect("campgrounds");
 				}
@@ -149,6 +155,10 @@ router.get("/:id/edit",middleware.checkOwnership,function(req,res){
 
 //UPDATE
 router.put("/:id",middleware.checkOwnership,upload.single('image'),function(req,res){
+		if(req.fileValidationError){
+			req.flash("error","Invalid image file");
+			return res.redirect("/campgrounds/"+req.params.id);
+		}
 		Campground.findById(req.params.id,async function(err,campground){
 			if(err){
 				req.flash("error",err.message);

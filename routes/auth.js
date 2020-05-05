@@ -8,13 +8,14 @@ var passport = require("passport");
 	var multer = require('multer');
 	var storage = multer.diskStorage({
 		filename: function(req,file,callback){
-					callback(null,Date.now()+ file.originalname);
+			callback(null,Date.now()+ file.originalname);
 		}
 	});
 	var imageFilter = function(req,file,callback){
 		//accept image files only
 		if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)){
-			return callback(new Error("Only image files are allowed"),false);
+			req.fileValidationError = "Only image files are allowed";
+			return callback(null,false,req.fileValidationError);
 		}
 		callback(null,true);
 	}
@@ -51,10 +52,23 @@ router.get("/admin-register",function(req,res){
 
 // REGISTER NEW ADMIN USER
 router.post("/admin-register",upload.single('avatar'),function(req,res){
+	if(req.fileValidationError){
+		req.flash("error","Invalid image file");
+		return res.redirect("/admin-register");
+	}
+	User.exists({email: req.body.email }, function(err, result) {
+		if (err) {
+		  	return;
+		}
+		if(result){
+			req.flash("error","email already registered");
+			return res.redirect("/admin-register");
+		}
+  	});
 	cloudinary.v2.uploader.upload(req.file.path,{folder:"YelpCamp-Users"},function(err,result){
 		if(err){
 			req.flash("error",err.message);
-			return res.redirect("back");
+			return res.redirect("/admin-register");
 		}
 		var newUser = new User({
 			username: req.body.username,
@@ -89,10 +103,23 @@ router.post("/admin-register",upload.single('avatar'),function(req,res){
 
 // REGISTER NEW USER
 router.post("/register",upload.single('avatar'),function(req,res){
+	if(req.fileValidationError){
+		req.flash("error","Invalid image file");
+		return res.redirect("/register");
+	}
+	User.exists({email: req.body.email }, function(err, result) {
+		if (err) {
+		    return;
+		}
+		if(result){
+			req.flash("error","email already registered");
+			return res.redirect("/register");
+		}
+  	});
 	cloudinary.v2.uploader.upload(req.file.path,{folder:"YelpCamp-Users"},function(err,result){
 		if(err){
 			req.flash("error",err.message);
-			return res.redirect("back");
+			return res.redirect("/register");
 		}
 		var newUser = new User({
 			username: req.body.username,

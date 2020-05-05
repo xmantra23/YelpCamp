@@ -9,11 +9,11 @@
 				  enctype = "multipart/form-data">
 				<div class = "form-group">
 					<input class = "form-control" type = "text" value ="<%= campground.name %>"  
-						   name = "name">	
+						   name = "name" required>	
 				</div>
 				<div class = "form-group">
 					<input class = "form-control" type = "number" value ="<%= campground.price %>"  
-						   name = "price" min = "0.1" step = "0.1">	
+						   name = "price" min = "0.1" step = "0.1" required>	
 				</div>
 				<div class = "form-group">
 					<label for = 'image'>Image</label>
@@ -21,12 +21,12 @@
 				</div>
 				<div class = "form-group">
 					<input class = "form-control" type = "text" value = "<%= campground.description %>" 
-						   name = "description">
+						   name = "description" required>
 				</div>
 				<div class = "form-group">
 					<label for="location">Location</label>
 					<input class = "form-control" type = "text" value = "<%= campground.location %>"
-						   name = "location" id = "location">
+						   name = "location" id = "location" required>
 				</div>
 				<div class = "form-group">
 					<button class = "btn btn-block btn-primary">Submit</button>	
