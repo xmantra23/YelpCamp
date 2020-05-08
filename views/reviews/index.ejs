@@ -39,7 +39,7 @@
 									<p style = "text-align: justify; word-wrap: break-word;">
 										<%= review.text %>
 									</p>
-									<% if(currentUser && review.author.id.equals(currentUser._id) || currentUser.isAdmin){%> 
+									<% if(currentUser && (review.author.id.equals(currentUser._id) || currentUser.isAdmin)){%> 
 										<a class = "btn btn-xs btn-warning" href = "/campgrounds/<%= campground._id %>/reviews/<%= review._id %>/edit">
 											Edit 
 										</a>
