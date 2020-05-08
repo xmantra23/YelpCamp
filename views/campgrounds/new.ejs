@@ -4,10 +4,11 @@
 		Add a campground.
 	</h2>
 	<div class = "row">
-		<div class = "container-fluid" style="width:30%;margin: 30px auto">
+		<div class = "container-fluid" style="width:40%;margin: 30px auto">
 			<form action = "/campgrounds" method = "POST" enctype = "multipart/form-data">
 				<div class = "form-group">
-					<input class = "form-control" type = "text" placeholder = "Campground Name" name = "name" required>	
+					<input class = "form-control" type = "text" placeholder = "Campground Name (25 characters max)" 
+						   name = "name" maxlength = "25" required>	
 				</div>
 				<div class = "form-group">
 					<input class = "form-control" type = "number" placeholder = "price" name = "price"
@@ -18,8 +19,8 @@
 					<input type = "file" id = "image" name = "image" accept = "image/*" required>		
 				</div>
 				<div class = "form-group">
-					<input class = "form-control" type = "text" placeholder = "Description" 
-						   name = "description" required>
+					<textarea class = "form-control" type = "text" placeholder = "Description" 
+							  name = "description" rows = "8" required></textarea>
 				</div>
 				<div class = "form-group">
 					<label for="location">Location</label>
