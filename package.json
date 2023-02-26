@@ -29,7 +29,7 @@
     "multer": "^1.4.2",
     "node-geocoder": "^3.27.0",
     "nodemailer": "^6.6.1",
-    "passport": "^0.4.1",
+    "passport": "^0.6.0",
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^6.0.1",
     "v8": "^0.1.0"
